@@ -10,32 +10,36 @@
 extern const uint8_t battery_font24[] U8G2_FONT_SECTION("battery_font24");
 
 extern const uint8_t myicon_font24[] U8G2_FONT_SECTION("myicon_font24");
-/* battery-bar0.png enc=10 w=24 h=24
+/*
+battery-bar0.png enc=10 w=24 h=24
 battery-bar1.png enc=11 w=24 h=24
 battery-bar2.png enc=12 w=24 h=24
 battery-bar3.png enc=13 w=24 h=24
 battery-bar4.png enc=14 w=24 h=24
 battery-bar5.png enc=15 w=24 h=24
 bolt.png enc=16 w=24 h=24
-thermometer.png enc=17 w=16 h=16
+humidity.png enc=17 w=32 h=32
+thermometer.png enc=18 w=16 h=16
+wifi.png enc=19 w=24 h=24
 */
 
 u8g2_t u8g2;
 
-static void display_bg_char(int x, int y, int inv_x, int inv_y, int r, char *str)
+static void display_bg_char(int x, int y, int inv_x, int inv_y, int r,
+                            const char *font, char *str, int char_num_max)
 {
     int box_x = x, box_y = y, box_w, box_h;
-    int hour_x, hour_y;
+    int str_x, str_y;
     int char_w;
 
     u8g2_SetFontMode(&u8g2, 0);
     u8g2_SetDrawColor(&u8g2, 1);
-	u8g2_SetFont(&u8g2, montmedium_font_82x);
+	u8g2_SetFont(&u8g2, font);
 
-    box_w = u8g2_GetMaxCharWidth(&u8g2) * 2 + inv_x * 2;
+    box_w = u8g2_GetMaxCharWidth(&u8g2) * char_num_max + inv_x * 2;
     box_h = u8g2_GetMaxCharHeight(&u8g2) + inv_y * 2;
 
-    printf("box w:%d h:%d\n", box_w, box_h);
+    printf("box w:%d h:%d str w:%d h:%d\n", box_w, box_h, u8g2_GetMaxCharWidth(&u8g2), u8g2_GetMaxCharHeight(&u8g2));
 
 	u8g2_DrawRBox(&u8g2, box_x, box_y, box_w, box_h, r);
 
@@ -44,10 +48,10 @@ static void display_bg_char(int x, int y, int inv_x, int inv_y, int r, char *str
 
     char_w = u8g2_GetStrWidth(&u8g2, str);
 
-    hour_x = box_x + (box_w - char_w) / 2;
-    hour_y = box_y + inv_y + u8g2_GetAscent(&u8g2);
+    str_x = box_x + (box_w - char_w) / 2;
+    str_y = box_y + inv_y + u8g2_GetAscent(&u8g2);
 
-    u8g2_DrawUTF8(&u8g2, hour_x, hour_y, str);
+    u8g2_DrawUTF8(&u8g2, str_x, str_y, str);
 }
 
 static void display_battery(int voltage, int charge)
@@ -80,10 +84,10 @@ static void display_battery(int voltage, int charge)
     else
         encoder += 5;
 
-    u8g2_DrawGlyph(&u8g2, start_x - cnt * inv_x + 7, 26, encoder);
+    u8g2_DrawGlyph(&u8g2, start_x - cnt * inv_x + 6, 26, encoder);
     cnt++;
 
-    u8g2_DrawGlyph(&u8g2, start_x - cnt * inv_x, 26, 18);
+    u8g2_DrawGlyph(&u8g2, start_x - cnt * inv_x, 26, 19);
 }
 
 static void display_time(int hour, int min)
@@ -91,10 +95,45 @@ static void display_time(int hour, int min)
     char buf[3];
 
     sprintf(buf, "%d", hour);
-    display_bg_char(20, 30, 5, 10, 8, buf);
+    display_bg_char(20, 30, 5, 10, 8, montmedium_font_82x, buf, 2);
 
     sprintf(buf, "%d", min);
-    display_bg_char(20 + 118 + 20, 30, 5, 10, 8, buf);
+    display_bg_char(20 + 118 + 20, 30, 5, 10, 8, montmedium_font_82x, buf, 2);
+}
+
+static void display_date(int mon, int day)
+{
+    char buf[6];
+
+    u8g2_SetFontMode(&u8g2, 0);
+    u8g2_SetDrawColor(&u8g2, 1);
+
+    sprintf(buf, "%02d-%02d", mon, day);
+
+    u8g2_SetFont(&u8g2, u8g2_font_inb24_mf);
+    u8g2_DrawUTF8(&u8g2, 180, 145, buf);
+    //display_bg_char(180, 110, 2, 2, 3, u8g2_font_inb24_mf, buf, 5);
+}
+
+static void display_temp_hum(int temp, int humi)
+{
+    char buf[6];
+
+    u8g2_SetFontMode(&u8g2, 0);
+    u8g2_SetDrawColor(&u8g2, 1);
+
+    sprintf(buf, "%d\xc2\xb0""C", temp);
+
+    u8g2_SetFont(&u8g2, u8g2_font_logisoso24_tf);
+    u8g2_DrawUTF8(&u8g2, 15, 145, buf);
+
+    memset(buf, 0, sizeof(buf));
+    sprintf(buf, "%d", humi);
+
+    u8g2_DrawUTF8(&u8g2, 110, 145, buf);
+
+    u8g2_SetFont(&u8g2, myicon_font24);
+    u8g2_DrawGlyph(&u8g2, 78, 150, 17);
 }
 
 int u8g2_init_windows(void)
@@ -114,7 +153,9 @@ int u8g2_init_windows(void)
 
 
     display_time(hour, hour+ 5 % 24);
+    display_date(hour%13, hour + 3 % 32);
     display_battery(battery % 100, hour%2);
+    display_temp_hum(hour % 60, hour + 50 % 100);
     battery += 23;
 
     hour++;
