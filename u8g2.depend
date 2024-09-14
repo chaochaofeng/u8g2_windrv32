@@ -1275,3 +1275,11 @@
 1726283078 source:d:\document\gui\u8g2_windrv32\tools\font\png2bdf\my_test\myicon_font24.c
 	"csrc/u8g2.h"
 
+1726283568 source:d:\document\gui\u8g2_windrv32\sys\win32drv\hello_world\main.c
+	"csrc/u8g2.h"
+	<stdio.h>
+	<stdlib.h>
+	<unistd.h>
+	"sys/win32drv/common/win32drv.h"
+	<windows.h>
+
