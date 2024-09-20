@@ -4,7 +4,6 @@
 #include <unistd.h>
 
 #include "sys/win32drv/common/win32drv.h"
-
 #include <windows.h>
 
 extern const uint8_t battery_font24[] U8G2_FONT_SECTION("battery_font24");
@@ -25,8 +24,13 @@ wifi.png enc=19 w=24 h=24
 
 u8g2_t u8g2;
 
+u8g2_t *get_u8g2(void)
+{
+    return &u8g2;
+}
+
 static void display_bg_char(int x, int y, int inv_x, int inv_y, int r,
-                            const char *font, char *str, int char_num_max)
+                            const uint8_t *font, char *str, int char_num_max)
 {
     int box_x = x, box_y = y, box_w, box_h;
     int str_x, str_y;
@@ -141,16 +145,7 @@ int u8g2_init_windows(void)
     static int hour = 0;
     static battery = 1;
 
-    u8g2_SetDrawColor(&u8g2, 1);
-    u8g2_SetFont(&u8g2, u8g2_font_helvB08_tr);
-
     u8g2_ClearBuffer(&u8g2);
-    u8g2_DrawUTF8(&u8g2, 2, 10, "U8G2 on");
-    u8g2_DrawUTF8(&u8g2, 2, 20, "Win32Drv");
-    u8g2_DrawUTF8(&u8g2, 2, 31, "Framebuffer");
-    u8g2_SetFont(&u8g2, u8g2_font_open_iconic_all_4x_t);
-    u8g2_DrawGlyph(&u8g2,200, 100, 120);
-
 
     display_time(hour, hour+ 5 % 24);
     display_date(hour%13, hour + 3 % 32);
@@ -170,8 +165,20 @@ int u8g2_init_windows(void)
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int nCmdShow)
 {
     u8g2_Setupwin32drv(&u8g2, U8G2_R0, hInstance, 296, 152);
-	u8x8_InitDisplay(u8g2_GetU8x8(&u8g2));
-	u8x8_SetPowerSave(u8g2_GetU8x8(&u8g2), 0);
+    u8x8_InitDisplay(u8g2_GetU8x8(&u8g2));
+    u8x8_SetPowerSave(u8g2_GetU8x8(&u8g2), 0);
+
+    u8g2_ClearBuffer(&u8g2);
+    u8g2_SetFont(&u8g2, u8g2_font_helvB08_tr);
+
+    u8g2_DrawUTF8(&u8g2, 2, 10, "U8G2 on");
+    u8g2_DrawUTF8(&u8g2, 2, 20, "Win32Drv");
+    u8g2_DrawUTF8(&u8g2, 2, 31, "Framebuffer");
+    u8g2_SetFont(&u8g2, u8g2_font_open_iconic_all_4x_t);
+    u8g2_DrawGlyph(&u8g2,200, 100, 120);
+    u8g2_NextPage(&u8g2);
+
+    usleep(1000 * 1000);
 
     while(!win32_quit_signal) {
         u8g2_init_windows();
