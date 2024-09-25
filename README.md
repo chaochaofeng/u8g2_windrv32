@@ -1,5 +1,17 @@
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/olikraus/u8g2) 
+# 使用说明
+---
+* git clone 代码到本地
+* 使用codeblocks打开project 选择u8g2.cbp
+* 修改sys/win32drv/hello_world/main.c
+* 点击build and run
+![运行](bin/build.png)
 
+# 运行效果
+---
+![运行效果](bin/run.png)
+
+
+# 以下是u8g2说明
 ![https://raw.githubusercontent.com/wiki/olikraus/u8g2/ref/u8g2_logo_transparent_orange.png](https://raw.githubusercontent.com/wiki/olikraus/u8g2/ref/u8g2_logo_transparent_orange.png) 
 
 
@@ -28,4 +40,3 @@ The Arduino library U8g2 can be installed from the library manager of the Arduin
 
 
 [Setup Guide and Reference Manual](https://github.com/olikraus/u8g2/wiki)
-
