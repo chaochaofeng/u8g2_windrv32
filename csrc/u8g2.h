@@ -4059,7 +4059,7 @@ extern const uint8_t montmedium_font_82x[] U8G2_FONT_SECTION("montmedium_font_82
 #define u8g_font_profont29   u8g2_font_profont29_tf
 #define u8g_font_profont29r   u8g2_font_profont29_tr
 
-
+u8g2_t *get_u8g2(void);
 /*==========================================*/
 /* C++ compatible */
 

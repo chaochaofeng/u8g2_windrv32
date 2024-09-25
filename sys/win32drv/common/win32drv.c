@@ -641,8 +641,8 @@ static unsigned int __stdcall u8g2_win32_window_thread_entrypoint(
         window_class.lpszClassName,
         L"U8G2 Simulator for Windows Desktop",
         WINDOW_STYLE,
-        CW_USEDEFAULT,
-        0,
+        1200,
+        800,
         CW_USEDEFAULT,
         0,
         NULL,
@@ -683,8 +683,8 @@ static unsigned int __stdcall u8g2_win32_window_thread_entrypoint(
     SetWindowPos(
         window_handle,
         NULL,
-        0,
-        0,
+        10,
+        10,
         window_size.right,
         window_size.bottom,
         SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE);
@@ -717,6 +717,79 @@ static unsigned int __stdcall u8g2_win32_window_thread_entrypoint(
     win32_quit_signal = true;
 
     return 0;
+}
+
+enum {
+    UG_KEY_UP        = 17,  /*0x11*/
+    UG_KEY_DOWN      = 18,  /*0x12*/
+    UG_KEY_RIGHT     = 19,  /*0x13*/
+    UG_KEY_LEFT      = 20,  /*0x14*/
+    UG_KEY_ESC       = 27,  /*0x1B*/
+    UG_KEY_DEL       = 127, /*0x7F*/
+    UG_KEY_BACKSPACE = 8,   /*0x08*/
+    UG_KEY_ENTER     = 10,  /*0x0A, '\n'*/
+    UG_KEY_NEXT      = 9,   /*0x09, '\t'*/
+    UG_KEY_PREV      = 11,  /*0x0B, '*/
+    UG_KEY_HOME      = 2,   /*0x02, STX*/
+    UG_KEY_END       = 3,   /*0x03, ETX*/
+};
+
+void win32_keypad_read(
+    int *state,
+    int *key)
+{
+    *state = (g_keyboard_pressed ? 1 : 0);
+
+    WPARAM KeyboardValue = g_keyboard_value;
+
+    switch (KeyboardValue)
+    {
+    case VK_UP:
+        *key = UG_KEY_UP;
+        break;
+    case VK_DOWN:
+        *key = UG_KEY_DOWN;
+        break;
+    case VK_LEFT:
+        *key = UG_KEY_LEFT;
+        break;
+    case VK_RIGHT:
+        *key = UG_KEY_RIGHT;
+        break;
+    case VK_ESCAPE:
+        *key = UG_KEY_ESC;
+        break;
+    case VK_DELETE:
+        *key = UG_KEY_DEL;
+        break;
+    case VK_BACK:
+        *key = UG_KEY_BACKSPACE;
+        break;
+    case VK_RETURN:
+        *key = UG_KEY_ENTER;
+        break;
+    case VK_NEXT:
+        *key = UG_KEY_NEXT;
+        break;
+    case VK_PRIOR:
+        *key = UG_KEY_PREV;
+        break;
+    case VK_HOME:
+        *key = UG_KEY_HOME;
+        break;
+    case VK_END:
+        *key = UG_KEY_END;
+        break;
+    default:
+        if (KeyboardValue >= 'A' && KeyboardValue <= 'Z')
+        {
+            KeyboardValue += 0x20;
+        }
+
+        *key = (uint32_t)KeyboardValue;
+
+        break;
+    }
 }
 
 /*========================================================*/
@@ -755,7 +828,7 @@ uint8_t u8x8_win32drv_alloc(u8x8_win32drv_t *fb)
 	}
 
 	// Map the device to memory
-	fb->fbp = g_pixel_buffer;
+	fb->fbp = (uint8_t *)g_pixel_buffer;
 
 	memset(fb->fbp, 0xFF, g_pixel_buffer_size);
 	return 1;

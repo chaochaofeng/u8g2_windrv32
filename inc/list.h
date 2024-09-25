@@ -23,12 +23,9 @@
 #ifndef INCLUDE_LIST_H
 #define INCLUDE_LIST_H
 
-#include <compiler.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-
-__BEGIN_CDECLS
 
 #define containerof(ptr, type, member) \
     ((type *)((uintptr_t)(ptr) - offsetof(type, member)))
@@ -286,7 +283,5 @@ static inline size_t list_length(struct list_node *list)
 
     return cnt;
 }
-
-__END_CDECLS
 
 #endif

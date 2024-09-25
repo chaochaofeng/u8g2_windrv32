@@ -41,6 +41,10 @@
 			<Add option="-Wall" />
 			<Add directory="." />
 		</Compiler>
+		<Unit filename="core/inc/base.h" />
+		<Unit filename="core/src/base.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="csrc/mui.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -411,6 +415,7 @@
 		<Unit filename="csrc/u8x8_u8toa.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="inc/list.h" />
 		<Unit filename="sys/win32drv/common/win32drv.c">
 			<Option compilerVar="CC" />
 		</Unit>

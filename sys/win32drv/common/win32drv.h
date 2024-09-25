@@ -57,6 +57,8 @@ EXTERN_C int u8g2_win32_init(
 
 void u8g2_Setupwin32drv(u8g2_t *u8g2, const u8g2_cb_t *u8g2_cb,
     HINSTANCE hInstance, uint32_t width, uint32_t height);
+
+void win32_keypad_read(int *state, int *key);
 /**********************
  *      MACROS
  **********************/
