@@ -33,6 +33,8 @@ ug_base *create_base(ug_base *parent, int type)
     new->outline_pad.pad_w = 2;
     new->outline_pad.pad_r = 2;
 
+    new->visible = true;
+
     UG_LOG("init :%p\n", new);
 
     return new;
@@ -86,7 +88,6 @@ void ug_base_set_context(ug_base *base, const char *context)
     memset(base->context, 0, sizeof(base->context));
 
     memcpy(base->context, context, strlen(context));
-    base->changed = true;
 }
 
 void ug_base_set_context_type(ug_base *base, int type)
@@ -105,20 +106,17 @@ void ug_base_set_pos(ug_base *base, int x, int y)
 {
     base->x = x;
     base->y = y;
-    base->changed = true;
 }
 
 void ug_base_set_size(ug_base *base, int w, int h)
 {
     base->w = w;
     base->h = h;
-    base->changed = true;
 }
 
 void ug_base_set_font(ug_base *base, const char* font)
 {
     base->font = font;
-    base->changed = true;
 }
 
 void ug_base_enable_focus(ug_base *base, bool en)
@@ -131,6 +129,11 @@ void ug_base_enable_bg(ug_base *base, bool en)
     base->bg_en = en;
 }
 
+void ug_base_enable_visible(ug_base *base, bool en)
+{
+    base->visible = en;
+}
+
 static void display_char(ug_base *child)
 {
     u8g2_SetDrawColor(get_u8g2(), 1);
@@ -141,8 +144,6 @@ static void display_char(ug_base *child)
     child->h = u8g2_GetMaxCharHeight(get_u8g2());
 
     u8g2_DrawUTF8(get_u8g2(), child->x, child->y + u8g2_GetAscent(get_u8g2()), child->context);
-
-    child->changed = false;
 }
 
 static void display_glphy(ug_base *child)
@@ -166,8 +167,7 @@ static void display_glphy(ug_base *child)
 
 static void display_bg_char(ug_base *child)
 {
-    int box_x = child->x, box_y = child->y, box_w, box_h;
-    int str_x, str_y;
+    int str_x = child->x, str_y = child->y;
     int char_w;
     char *str = child->context;
     int char_num_max = strlen(child->context);
@@ -180,30 +180,33 @@ static void display_bg_char(ug_base *child)
     u8g2_SetDrawColor(get_u8g2(), 1);
 	u8g2_SetFont(get_u8g2(), child->font);
 
+    if (!child->w)
+        child->w = u8g2_GetStrWidth(get_u8g2(), child->context);
+
+    if (!child->h)
+        child->h = u8g2_GetMaxCharHeight(get_u8g2());
+
     if (child->bg_en) {
-        box_w = u8g2_GetMaxCharWidth(get_u8g2()) * char_num_max + inv_x * 2;
-        box_h = u8g2_GetMaxCharHeight(get_u8g2()) + inv_y * 2;
+        int box_x = child->x, box_y = child->y, box_w, box_h;
+
+        box_x = str_x - inv_x;
+        box_y = str_y - u8g2_GetAscent(get_u8g2()) - inv_y;
+        box_w = child->w + inv_x * 2;
+        box_h = child->h + inv_y * 2;
+
+        printf("char_num_max:%d box_w:%d\n", char_num_max, box_w);
 
         u8g2_DrawRBox(get_u8g2(), box_x, box_y, box_w, box_h, r);
 
         u8g2_SetDrawColor(get_u8g2(), 0);
 
-        char_w = u8g2_GetStrWidth(get_u8g2(), str);
+        char_w = u8g2_GetStrWidth(get_u8g2(), child->context);
 
         str_x = box_x + (box_w - char_w) / 2;
-        str_y = box_y + inv_y + u8g2_GetAscent(get_u8g2());
-    } else {
-        str_x = child->x;
-        str_y = child->y;
+        //str_y = box_y + inv_y + u8g2_GetAscent(get_u8g2());
     }
 
-    if (!child->w && !child->h) {
-        child->w = u8g2_GetStrWidth(get_u8g2(), child->context);
-        child->h = u8g2_GetMaxCharHeight(get_u8g2());
-    }
-
-    if (child->context_type == TYPE_TEXT)
-        u8g2_DrawUTF8(get_u8g2(), str_x, str_y, str);
+    u8g2_DrawUTF8(get_u8g2(), str_x, str_y, str);
 }
 
 void ug_base_flush(ug_base *base)
@@ -211,6 +214,9 @@ void ug_base_flush(ug_base *base)
     ug_base *child = NULL;
 
     list_for_every_entry(&base->list, child, ug_base, node) {
+        if (!child->visible)
+            continue;
+
         if (!strlen(child->context))
             continue;
 
@@ -334,13 +340,20 @@ void ug_input_proc(int key)
             printf("enter %p type:%d\n", focus_cur, focus_cur->type);
 
             if (focus_cur && focus_cur->type == UG_TYPE_MENU) {
-                if (focus_cur->cb)
-                   focus_cur->cb(focus_cur, UG_KEY_ENTER);
+                if (focus_cur->cb) {
+                    printf("%p cb\n");
+                    focus_cur->cb(focus_cur, UG_KEY_ENTER);
 
-                ug_base_flush(focus_cur);
-                focus_cur = NULL;
+                    ug_base_flush(focus_cur);
+                    focus_cur = NULL;
 
-                ug_find_focus(display_cur, true);
+                    ug_find_focus(display_cur, true);
+                }
+                else {
+                    ug_base_flush(display_cur); //cb isn't set, don't entry
+
+                    ug_draw_outline(focus_cur);
+                }
             } else {
                 focus_cur->selected = !focus_cur->selected;
 

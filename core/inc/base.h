@@ -34,7 +34,7 @@ struct ug_base_st {
     const char *font;
     char context[64];
     uint8_t context_type;
-    bool changed;
+    bool visible;
     bool selected;
     bool can_focus;
 
@@ -80,6 +80,7 @@ void ug_base_set_font(ug_base *base, const char* font);
 void ug_base_flush(ug_base *base);
 void ug_base_enable_focus(ug_base *base, bool en);
 void ug_base_enable_bg(ug_base *base, bool en);
+void ug_base_enable_visible(ug_base *base, bool en);
 
 void ug_base_rm_child(ug_base *base, ug_base *child);
 void ug_base_rmall_child(ug_base *base);

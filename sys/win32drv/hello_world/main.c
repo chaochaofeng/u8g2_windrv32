@@ -236,7 +236,7 @@ ug_base *ui_menu_back;
 ug_base *menuWifiScreenconfigwifi;
 ug_base *menuWifiBack;
 
-static int menuWifiBack_event_cb(struct ug_base_st *base, int event)
+static int menuWifi_event_cb(struct ug_base_st *base, int event)
 {
     if (event != UG_KEY_ENTER)
         return 0;
@@ -250,12 +250,20 @@ static int menuWifiBack_event_cb(struct ug_base_st *base, int event)
         ug_base_rmall_child(ui_menu_wifi);
     } else if (base == menuWifiScreenconfigwifi) {
         if (base->selected) {
-            menuWifiScreenconfigwifi->bg_en = true;
+            ug_base_enable_bg(menuWifiScreenconfigwifi, true);
+            ug_base_set_pos(menuWifiScreenconfigwifi, 40, 30);
 
             u8g2_SetDrawColor(&u8g2, 1);
             u8g2_SetFont(&u8g2, u8g2_font_logisoso24_tf);
-            u8g2_DrawUTF8(&u8g2, 40, 70, "configwifi");
-            u8g2_DrawUTF8(&u8g2, 40, 100, "IP:192.168.4.1");
+            u8g2_DrawUTF8(&u8g2, 40, 90, "AP:configwifi");
+            u8g2_DrawUTF8(&u8g2, 40, 130, "IP:192.168.4.1");
+
+            ug_base_enable_visible(menuWifiBack, false);
+        } else {
+            ug_base_enable_bg(menuWifiScreenconfigwifi, false);
+            ug_base_set_pos(menuWifiScreenconfigwifi, 40, 40);
+
+            ug_base_enable_visible(menuWifiBack, true);
         }
     }
 
@@ -271,7 +279,7 @@ static void ug_menuWifiScreen_init(void)
     ug_base_set_pos(menuWifiScreenconfigwifi, 40, 40);
     ug_base_enable_focus(menuWifiScreenconfigwifi, true);
     menuWifiScreenconfigwifi->outline_pad.pad_w = 6;
-    menuWifiScreenconfigwifi->cb = menuWifiBack_event_cb;
+    menuWifiScreenconfigwifi->cb = menuWifi_event_cb;
 
     menuWifiBack = create_base(ui_menu_wifi, UG_TYPE_ITEM);
     ug_base_set_font(menuWifiBack, u8g2_font_logisoso24_tf);
@@ -279,8 +287,66 @@ static void ug_menuWifiScreen_init(void)
     ug_base_set_context(menuWifiBack, "BACK");
     ug_base_set_pos(menuWifiBack, 40, 110);
     ug_base_enable_focus(menuWifiBack, true);
-    menuWifiBack->cb = menuWifiBack_event_cb;
+    menuWifiBack->cb = menuWifi_event_cb;
     menuWifiBack->outline_pad.pad_w = 6;
+}
+
+
+ug_base *menuSettingScreenconfig;
+ug_base *menuSettingBack;
+
+static int menuSetting_event_cb(struct ug_base_st *base, int event)
+{
+    if (event != UG_KEY_ENTER)
+        return 0;
+
+    if (base == menuSettingBack) {
+        base->selected = false;
+
+        ug_set_curscreen(ui_trigger);
+        ug_set_focus(ui_menu_setting);
+
+        ug_base_rmall_child(ui_menu_setting);
+    } else if (base == menuSettingScreenconfig) {
+        if (base->selected) {
+            ug_base_enable_bg(menuSettingScreenconfig, true);
+            ug_base_set_pos(menuSettingScreenconfig, 40, 30);
+
+            u8g2_SetDrawColor(&u8g2, 1);
+            u8g2_SetFont(&u8g2, u8g2_font_logisoso24_tf);
+            u8g2_DrawUTF8(&u8g2, 40, 90, "calibrate time ...");
+
+            ug_base_enable_visible(menuSettingBack, false);
+        } else {
+            ug_base_enable_bg(menuSettingScreenconfig, false);
+            ug_base_set_pos(menuSettingScreenconfig, 40, 40);
+
+            ug_base_enable_visible(menuSettingBack, true);
+        }
+    }
+
+    return;
+}
+
+static void ug_menuSettingScreen_init(void)
+{
+    menuSettingScreenconfig = create_base(ui_menu_setting, UG_TYPE_ITEM);
+    ug_base_set_font(menuSettingScreenconfig, u8g2_font_logisoso24_tf);
+    ug_base_set_context_type(menuSettingScreenconfig, TYPE_TEXT);
+    ug_base_set_context(menuSettingScreenconfig, "Cal Time");
+    ug_base_set_pos(menuSettingScreenconfig, 40, 40);
+    ug_base_enable_focus(menuSettingScreenconfig, true);
+    menuSettingScreenconfig->outline_pad.pad_w = 6;
+    menuSettingScreenconfig->cb = menuSetting_event_cb;
+
+    menuSettingBack = create_base(ui_menu_setting, UG_TYPE_ITEM);
+    ug_base_set_font(menuSettingBack, u8g2_font_logisoso24_tf);
+    ug_base_set_context_type(menuSettingBack, TYPE_TEXT);
+    ug_base_set_context(menuSettingBack, "BACK");
+    ug_base_set_pos(menuSettingBack, 40, 110);
+    ug_base_enable_focus(menuSettingBack, true);
+    menuSettingBack->cb = menuSetting_event_cb;
+    menuSettingBack->outline_pad.pad_w = 6;
 }
 
 
@@ -296,7 +362,7 @@ static void ug_menuScreen_init(void)
     ui_menu_wifi->h = 64;
     ui_menu_wifi->cb = menu_event_cb;
 
-    ui_menu_setting = create_base(ui_trigger, UG_TYPE_ITEM);
+    ui_menu_setting = create_base(ui_trigger, UG_TYPE_MENU);
     ug_base_set_font(ui_menu_setting, menu_font64);
     ug_base_set_context_type(ui_menu_setting, TYPE_GLYPH);
     ug_base_set_glph_encoder(ui_menu_setting, 10);
@@ -304,6 +370,7 @@ static void ug_menuScreen_init(void)
     ug_base_enable_focus(ui_menu_setting, true);
     ui_menu_setting->w = 64;
     ui_menu_setting->h = 64;
+    ui_menu_setting->cb = menu_event_cb;
 
     ui_menu_back = create_base(ui_trigger, UG_TYPE_ITEM);
     ug_base_set_font(ui_menu_back, menu_font64);
@@ -338,6 +405,9 @@ static int menu_event_cb(struct ug_base_st *base, int event)
     } else if (base == ui_menu_wifi) {
         printf("entry menu wifi\n");
         ug_menuWifiScreen_init();
+    } else if (base == ui_menu_setting) {
+        printf("entry menu Setting\n");
+        ug_menuSettingScreen_init();
     }
 
     return 0;
@@ -379,10 +449,12 @@ static void ug_mainScreen_init(void)
     ui_hour = create_base(mainScreen, UG_TYPE_ITEM);
     ug_base_set_context_type(ui_hour, TYPE_TEXT);
     ug_base_enable_bg(ui_hour, true);
+    ui_hour->w = 108;
 
     ui_min = create_base(mainScreen, UG_TYPE_ITEM);
     ug_base_set_context_type(ui_min, TYPE_TEXT);
     ug_base_enable_bg(ui_min, true);
+    ui_min->w = 108;
 #endif
     ui_date = create_base(mainScreen, UG_TYPE_ITEM);
     ug_base_set_context_type(ui_date, TYPE_TEXT);
@@ -421,11 +493,11 @@ static void ug_mainScreen_update(void)
     u8g2_ClearBuffer(&u8g2);
 
 #if 1
-    ug_base_set_pos(ui_hour, 20, 30);
+    ug_base_set_pos(ui_hour, 20, 100);
     ug_base_set_font(ui_hour, montmedium_font_82x);
     ug_base_set_context(ui_hour, "01");
 
-    ug_base_set_pos(ui_min, 20 + 118 + 20, 30);
+    ug_base_set_pos(ui_min, 20 + 118 + 20, 100);
     ug_base_set_font(ui_min, montmedium_font_82x);
     ug_base_set_context(ui_min, "02");
 #endif
