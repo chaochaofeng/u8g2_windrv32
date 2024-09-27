@@ -641,8 +641,8 @@ static unsigned int __stdcall u8g2_win32_window_thread_entrypoint(
         window_class.lpszClassName,
         L"U8G2 Simulator for Windows Desktop",
         WINDOW_STYLE,
-        CW_USEDEFAULT,
-        0,
+        1000,
+        900,
         CW_USEDEFAULT,
         0,
         NULL,
@@ -790,6 +790,8 @@ void win32_keypad_read(
 
         break;
     }
+
+    g_keyboard_pressed = 0;
 }
 
 /*========================================================*/

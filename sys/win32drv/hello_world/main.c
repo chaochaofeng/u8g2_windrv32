@@ -12,6 +12,7 @@ extern const uint8_t myicon_font24[] U8G2_FONT_SECTION("myicon_font24");
 extern const uint8_t wifi_font24[] U8G2_FONT_SECTION("wifi_font24");
 extern const uint8_t wifi_font64[] U8G2_FONT_SECTION("wifi_font64");
 extern const uint8_t menu_font64[] U8G2_FONT_SECTION("menu_font64");
+extern const uint8_t scrum_16x[] U8G2_FONT_SECTION("scrum_16x");
 /*
 battery-bar0.png enc=10 w=24 h=24
 battery-bar1.png enc=11 w=24 h=24
@@ -226,6 +227,7 @@ ug_base *ui_battery_charge;
 ug_base *ui_battery;
 ug_base *ui_wifi;
 ug_base *ui_trigger;
+ug_base *ui_label;
 
 
 ug_base *ui_menu_wifi;
@@ -250,15 +252,24 @@ static int menuWifi_event_cb(struct ug_base_st *base, int event)
         ug_base_rmall_child(ui_menu_wifi);
     } else if (base == menuWifiScreenconfigwifi) {
         if (base->selected) {
+            ug_base_enable_visible(menuWifiBack, false);
+
             ug_base_enable_bg(menuWifiScreenconfigwifi, true);
             ug_base_set_pos(menuWifiScreenconfigwifi, 40, 30);
 
+            u8g2_SetFont(get_u8g2(), u8g2_font_logisoso24_tf);
+            u8g2_DrawUTF8(get_u8g2(), 40, 90, "init wifi ap ...");
+            ug_base_flush(ui_menu_wifi);
+            u8g2_NextPage(get_u8g2());
+
+            usleep(1000 * 1000);
+
+            u8g2_ClearBuffer(get_u8g2());
             u8g2_SetDrawColor(&u8g2, 1);
             u8g2_SetFont(&u8g2, u8g2_font_logisoso24_tf);
             u8g2_DrawUTF8(&u8g2, 40, 90, "AP:configwifi");
             u8g2_DrawUTF8(&u8g2, 40, 130, "IP:192.168.4.1");
 
-            ug_base_enable_visible(menuWifiBack, false);
         } else {
             ug_base_enable_bg(menuWifiScreenconfigwifi, false);
             ug_base_set_pos(menuWifiScreenconfigwifi, 40, 40);
@@ -438,6 +449,12 @@ static void status_bar_init(void)
     ug_base_set_glph_encoder(ui_wifi, 10);
     ug_base_set_context_type(ui_wifi, TYPE_GLYPH);
     ug_base_set_pos(ui_wifi, start_x - cnt * inv_x, 26);
+
+    ui_label = create_base(mainScreen, UG_TYPE_ITEM);
+    ug_base_set_font(ui_label, u8g2_font_wqy16_t_chinese1);
+    ug_base_set_context(ui_label, " å¤©å¤©å¼€å¿ƒ ");
+    ug_base_set_pos(ui_label, 5, 22);
+    ug_base_set_context_type(ui_label, TYPE_TEXT);
 }
 
 
@@ -445,20 +462,35 @@ static void ug_mainScreen_init(void)
 {
     mainScreen = create_base(NULL, UG_TYPE_MENU);
 
-#if 1
     ui_hour = create_base(mainScreen, UG_TYPE_ITEM);
     ug_base_set_context_type(ui_hour, TYPE_TEXT);
     ug_base_enable_bg(ui_hour, true);
+
+    ug_base_set_pos(ui_hour, 25, 100);
+    ug_base_set_font(ui_hour, montmedium_font_82x);
+    ug_base_set_context(ui_hour, "8");
     ui_hour->w = 108;
+    ui_hour->bg_pad.pad_w = 5;
+    ui_hour->bg_pad.pad_h = 10;
+    ui_hour->bg_pad.pad_r = 8;
 
     ui_min = create_base(mainScreen, UG_TYPE_ITEM);
     ug_base_set_context_type(ui_min, TYPE_TEXT);
     ug_base_enable_bg(ui_min, true);
+    ug_base_set_pos(ui_min, 25 + 118 + 20, 100);
+    ug_base_set_font(ui_min, montmedium_font_82x);
+    ug_base_set_context(ui_min, "00");
     ui_min->w = 108;
-#endif
+    ui_min->bg_pad.pad_w = 5;
+    ui_min->bg_pad.pad_h = 10;
+    ui_min->bg_pad.pad_r = 8;
+
     ui_date = create_base(mainScreen, UG_TYPE_ITEM);
     ug_base_set_context_type(ui_date, TYPE_TEXT);
     ug_base_enable_focus(ui_date, true);
+    ug_base_set_pos(ui_date, 180, 145);
+    ug_base_set_font(ui_date, u8g2_font_inb24_mf);
+    ug_base_set_context(ui_date, "01-01");
 
     ui_temp = create_base(mainScreen, UG_TYPE_ITEM);
     ug_base_set_font(ui_temp, u8g2_font_logisoso24_tf);
@@ -485,26 +517,11 @@ static void ug_mainScreen_init(void)
     ui_trigger->can_focus = true;
     ui_trigger->cb = menu_event_cb;
     ug_set_focus(ui_trigger);
-
 }
 
 static void ug_mainScreen_update(void)
 {
     u8g2_ClearBuffer(&u8g2);
-
-#if 1
-    ug_base_set_pos(ui_hour, 20, 100);
-    ug_base_set_font(ui_hour, montmedium_font_82x);
-    ug_base_set_context(ui_hour, "01");
-
-    ug_base_set_pos(ui_min, 20 + 118 + 20, 100);
-    ug_base_set_font(ui_min, montmedium_font_82x);
-    ug_base_set_context(ui_min, "02");
-#endif
-    u8g2_DrawLine(get_u8g2(), 0, 145, 180, 145);
-    ug_base_set_pos(ui_date, 180, 145);
-    ug_base_set_font(ui_date, u8g2_font_inb24_mf);
-    ug_base_set_context(ui_date, "03-04");
 
     ug_base_flush(mainScreen);
 
@@ -549,7 +566,6 @@ void u8g2_thread()
     usleep(1000 * 1000);
     ug_mainScreen_init();
     ug_mainScreen_update();
-    usleep(1000 * 1000);
 
     while (1) {
         usleep(10 * 1000);
@@ -566,7 +582,7 @@ void key_read_thread()
         if (state)
             ug_input_proc(key);
 
-        usleep(100 * 1000);
+        usleep(50 * 1000);
     }
 }
 
@@ -576,13 +592,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLi
     u8x8_InitDisplay(u8g2_GetU8x8(&u8g2));
     u8x8_SetPowerSave(u8g2_GetU8x8(&u8g2), 0);
 
-    HANDLE u8g2_thread_handle; //Ïß³Ì¾ä±ú
-	u8g2_thread_handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)u8g2_thread, NULL, 1, 0); //´´½¨×ÓÏß³Ì
-	ResumeThread(u8g2_thread_handle);  //Æô¶¯×ÓÏß³Ì
+    HANDLE u8g2_thread_handle; //çº¿ç¨‹å¥æŸ„
+	u8g2_thread_handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)u8g2_thread, NULL, 1, 0); //åˆ›å»ºå­çº¿ç¨‹
+	ResumeThread(u8g2_thread_handle);  //å¯åŠ¨å­çº¿ç¨‹
 
-    HANDLE u8g2_key_handle; //Ïß³Ì¾ä±ú
-	u8g2_key_handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)key_read_thread, NULL, 1, 0); //´´½¨×ÓÏß³Ì
-	ResumeThread(u8g2_key_handle);  //Æô¶¯×ÓÏß³Ì
+    HANDLE u8g2_key_handle; //çº¿ç¨‹å¥æŸ„
+	u8g2_key_handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)key_read_thread, NULL, 1, 0); //åˆ›å»ºå­çº¿ç¨‹
+	ResumeThread(u8g2_key_handle);  //å¯åŠ¨å­çº¿ç¨‹
 
     while(!win32_quit_signal) {
         usleep(10 * 1000);

@@ -175,7 +175,14 @@ static void display_bg_char(ug_base *child)
     int inv_x = bg_pad->pad_w, inv_y = bg_pad->pad_h;
     int r = bg_pad->pad_r;
 
-    inv_x = 4, inv_y = 4, r = 5;
+    if (!bg_pad->pad_w)
+        inv_x = 4;
+
+    if (!bg_pad->pad_h)
+        inv_y = 4;
+
+    if (!bg_pad->pad_r)
+        r = 5;
 
     u8g2_SetDrawColor(get_u8g2(), 1);
 	u8g2_SetFont(get_u8g2(), child->font);
@@ -206,14 +213,24 @@ static void display_bg_char(ug_base *child)
         //str_y = box_y + inv_y + u8g2_GetAscent(get_u8g2());
     }
 
+    printf("%s %s\n", __func__, str);
     u8g2_DrawUTF8(get_u8g2(), str_x, str_y, str);
 }
 
 void ug_base_flush(ug_base *base)
 {
     ug_base *child = NULL;
+    ug_base *disp_cur = NULL;
 
-    list_for_every_entry(&base->list, child, ug_base, node) {
+    if (!base && !display_cur)
+        return;
+
+    if (!base)
+        disp_cur = display_cur;
+    else
+        disp_cur = base;
+
+    list_for_every_entry(&disp_cur->list, child, ug_base, node) {
         if (!child->visible)
             continue;
 
