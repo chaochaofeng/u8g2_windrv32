@@ -910,7 +910,7 @@ static uint8_t u8x8_Setwin32drvDevice(U8X8_UNUSED u8x8_t *u8x8,
 	u8x8_win32drv.width = width;
 	u8x8_win32drv.height = height;
 
-	u8g2_win32_init(hInstance, SW_SHOWNORMAL, 296, 152, NULL);
+	u8g2_win32_init(hInstance, SW_SHOWNORMAL, width, height, NULL);
 
 	/* update the global framebuffer object, allocate memory */
 	if ( u8x8_win32drv_alloc(&u8x8_win32drv) == 0 )
